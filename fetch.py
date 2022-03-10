@@ -45,8 +45,7 @@ def lottery():
     driver.get(lotteryUrl)
     if not driver.current_url == lotteryUrl:
         os.remove(cookieFileName)
-        return False
-    return True
+        raise LoginException
 
 def collect_content(content):
     res = content.split('<br>')
@@ -58,16 +57,22 @@ def fetch_one():
     page_num = 0
     
     while True:
-        # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
+        WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
+        # WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
         tbody = driver.find_element(by=By.TAG_NAME, value='tbody')
         rows = tbody.find_elements(by=By.TAG_NAME, value='tr')
+        # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
 
         for row in rows:
             linkTd = row.find_elements(by=By.TAG_NAME, value='td')[1]
             link = linkTd.find_element(by=By.TAG_NAME, value='a')
-            driver.execute_script("arguments[0].click();", link)
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable(link)).click()
+            # driver.execute_script("arguments[0].click();", link)
 
+            # connection = http.client.HTTPSConnection("www.journaldev.com")
+            # connection.request("GET", "/")
+            # response = connection.getresponse()
+            # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
 
             button = driver.find_element(by=By.XPATH, value="/html/body/div[1]/main/div[2]/div/div/div[1]/button")
             body = button.find_element(By.XPATH, value='../..').find_element(By.CLASS_NAME, value='modal-body')
@@ -75,15 +80,20 @@ def fetch_one():
 
             result_list = result_list + collect_content(content)
             WebDriverWait(driver, 5).until(EC.element_to_be_clickable(button)).click()
-            # i += 1
-            # print(i)
+            i += 1
+            print(i)
+            # break
         page_num += 1
         if page_num >= max_page_num:
             break
 
         pagination = driver.find_element(By.CLASS_NAME, value='pagination').find_elements(By.TAG_NAME, value='li')
         next_button = pagination[len(pagination)-1]
-        WebDriverWait(driver, 5).until(EC.element_to_be_clickable(next_button)).click()
+        # WebDriverWait(driver, 5).until(EC.element_to_be_clickable(next_button)).click()
+        driver.execute_script("arguments[0].click();", next_button)
+
+        sleep(1)
+        print("finish sleep")
         # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
     return result_list
 
@@ -91,8 +101,7 @@ def process():
     while True:
         try:
             login()
-            if not lottery():
-                raise LoginException
+            lottery()    
             break
         except LoginException:
             print("Cookie失效，需要重新登录了")
@@ -115,4 +124,3 @@ if __name__=="__main__":
     #     print("恭喜发现BUG，请联系皮皮！！")
     finally:
         driver.quit()
-        print("Finish")
