@@ -3,7 +3,6 @@
 import os
 import json
 import requests
-import chardet
 from time import sleep
 from tokenize import cookie_re
 from unittest import result
@@ -110,7 +109,7 @@ def process():
             lottery()
             break
         except LoginException:
-            print("Cookie失效，需要重新登录了")
+            print("Cookie失效，需要重新登录一下")
     return fetch_one()
 
 def filter_result(inputt_list):
