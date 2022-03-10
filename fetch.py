@@ -1,6 +1,9 @@
+#-*- coding: utf-8
 #!python3
 import os
 import json
+import requests
+import chardet
 from time import sleep
 from tokenize import cookie_re
 from unittest import result
@@ -16,11 +19,15 @@ from selenium.webdriver.common.by import By
 max_page_num = 3
 
 cookieFileName = "cookie.txt"
+resultFileName = "输出.txt"
 rootUrl = "https://www.kuabo.cn"
 loginUrl = "https://www.kuabo.cn/qq/login"
 consoleUrl = "https://console.kuabo.cn/"
 lotteryUrl = "https://console.kuabo.cn/lottery"
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+
+requestCookies = dict()
+filterSet = {"么么哒", "学喵叫x3", "给你一拳！"}
 class LoginException(Exception):
     pass
 
@@ -46,18 +53,33 @@ def lottery():
     if not driver.current_url == lotteryUrl:
         os.remove(cookieFileName)
         raise LoginException
+    cookies = driver.get_cookies()
+    for row in cookies:
+        requestCookies[row['name']]=row['value']
 
-def collect_content(content):
-    res = content.split('<br>')
+def get_data_id(text):
+    i = text.index('data-id="')
+    j = text.index('" href')
+    text = text[i+9:j]
+    return text
+
+def collect(content):
+    string = content.text
+    i = string.index('"data":"[')
+    j = string.index('","closed_at"')
+    string = string[i+11:j-3]
+    string = string.replace("\\/", "/").encode('utf-8').decode('unicode_escape')
+    res = string.split('","')
     return res
 
 def fetch_one():
     result_list = []
     i = 0
     page_num = 0
+    cookie = driver.get_cookies()
     
     while True:
-        WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
+        # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(3))
         # WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
         tbody = driver.find_element(by=By.TAG_NAME, value='tbody')
         rows = tbody.find_elements(by=By.TAG_NAME, value='tr')
@@ -65,24 +87,10 @@ def fetch_one():
 
         for row in rows:
             linkTd = row.find_elements(by=By.TAG_NAME, value='td')[1]
-            link = linkTd.find_element(by=By.TAG_NAME, value='a')
-            WebDriverWait(driver, 5).until(EC.element_to_be_clickable(link)).click()
-            # driver.execute_script("arguments[0].click();", link)
-
-            # connection = http.client.HTTPSConnection("www.journaldev.com")
-            # connection.request("GET", "/")
-            # response = connection.getresponse()
-            # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
-
-            button = driver.find_element(by=By.XPATH, value="/html/body/div[1]/main/div[2]/div/div/div[1]/button")
-            body = button.find_element(By.XPATH, value='../..').find_element(By.CLASS_NAME, value='modal-body')
-            content = body.get_attribute('innerHTML')
-
-            result_list = result_list + collect_content(content)
-            WebDriverWait(driver, 5).until(EC.element_to_be_clickable(button)).click()
+            id = get_data_id(linkTd.get_attribute('innerHTML'))
+            r = requests.post("https://console.kuabo.cn/Lottery/detail?id=%s"%id, cookies = requestCookies, verify=True)
+            result_list = result_list + collect(r)
             i += 1
-            print(i)
-            # break
         page_num += 1
         if page_num >= max_page_num:
             break
@@ -93,28 +101,35 @@ def fetch_one():
         driver.execute_script("arguments[0].click();", next_button)
 
         sleep(1)
-        print("finish sleep")
-        # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(2))
     return result_list
 
 def process():
     while True:
         try:
             login()
-            lottery()    
+            lottery()
             break
         except LoginException:
             print("Cookie失效，需要重新登录了")
     return fetch_one()
 
+def filter_result(inputt_list):
+    result_list = []
+    for string in inputt_list:
+        terms = string.split(" ")
+        item = terms[4]
+        if item in filterSet:
+            continue
+        result_list.append(string)
+    return result_list
+
 if __name__=="__main__":
     try: 
         result_list = process()
-        # content = "[2022/3/10 22:40:04] 阿木不说话(119454154) 抽中 学喵叫x3<br>[2022/3/10 22:37:40] 100500111(9349401) 抽中 唇印明信片<br>[2022/3/10 22:37:40] 100500111(9349401) 抽中 唇印明信片"
-        # res = collect_content(content)
-        # result_list = result_list + res
+        result_list = filter_result(result_list)
         res_str = '\n'.join(map(str, result_list))
-        print(res_str)
+        with open(resultFileName, "w") as file:
+            file.write(res_str)
     except NoSuchWindowException:
         print("脚本运行时，自动打开的浏览器被你手动关闭了！不要这么做哦！")
     except TimeoutException:
