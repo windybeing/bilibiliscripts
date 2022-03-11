@@ -11,11 +11,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import NoSuchWindowException, TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import NoSuchWindowException, TimeoutException
 from selenium.webdriver.common.by import By
 
 # 自动读取中奖页面的数量，默认每个页面20条可点开的记录
 max_page_num = 3
+# 被过滤掉的免费礼物
+filterSet = {"么么哒", "学喵叫x3", "给你一拳！"}
 
 cookieFileName = "cookie.txt"
 resultFileName = "输出.txt"
@@ -23,10 +25,11 @@ rootUrl = "https://www.kuabo.cn"
 loginUrl = "https://www.kuabo.cn/qq/login"
 consoleUrl = "https://console.kuabo.cn/"
 lotteryUrl = "https://console.kuabo.cn/lottery"
+requestCookies = dict()
+
+os.environ['WDM_LOG_LEVEL'] = '0'
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
-requestCookies = dict()
-filterSet = {"么么哒", "学喵叫x3", "给你一拳！"}
 class LoginException(Exception):
     pass
 
@@ -123,6 +126,8 @@ def filter_result(inputt_list):
     return result_list
 
 if __name__=="__main__":
+    print("Time is money, my friend.")
+    print("I sincerely hope that this script can saves your time.")
     try: 
         result_list = process()
         result_list = filter_result(result_list)
@@ -133,8 +138,7 @@ if __name__=="__main__":
         print("脚本运行时，自动打开的浏览器被你手动关闭了！不要这么做哦！")
     except TimeoutException:
         print("长时间未操作，所以这个脚本自己关闭了（")
-    # except Exception as e:
-    #     print("%s"%e)
-    #     print("恭喜发现BUG，请联系皮皮！！")
+    except Exception as e:
+        print("恭喜发现未知BUG，请联系皮皮！！")
     finally:
         driver.quit()
