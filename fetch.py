@@ -126,6 +126,10 @@ def filter_result(inputt_list):
     return result_list
 
 if __name__=="__main__":
+    print("\n  Time is money, my friend.")
+    print("  I sincerely hope that this script can save your time.")
+    print("                                             ------皮皮")
+    print("=======================================================")
     try: 
         result_list = process()
         result_list = filter_result(result_list)
