@@ -1,3 +1,4 @@
 .DS_store
 cookie.txt
 输出.txt
+__pycache__

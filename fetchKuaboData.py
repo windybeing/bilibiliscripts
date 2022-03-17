@@ -4,15 +4,11 @@ import os
 import json
 import requests
 from time import sleep
-from tokenize import cookie_re
-from unittest import result
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchWindowException, TimeoutException
 from selenium.webdriver.common.by import By
+from driver import driver
 
 # 自动读取中奖页面的数量，默认每个页面20条可点开的记录
 max_page_num = 3
@@ -25,10 +21,10 @@ rootUrl = "https://www.kuabo.cn"
 loginUrl = "https://www.kuabo.cn/qq/login"
 consoleUrl = "https://console.kuabo.cn/"
 lotteryUrl = "https://console.kuabo.cn/lottery"
+lotteryDetailsApi = "https://console.kuabo.cn/Lottery/detail?id=%s"
 requestCookies = dict()
 
 os.environ['WDM_LOG_LEVEL'] = '0'
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
 class LoginException(Exception):
     pass
@@ -90,7 +86,7 @@ def fetch_one():
         for row in rows:
             linkTd = row.find_elements(by=By.TAG_NAME, value='td')[1]
             id = get_data_id(linkTd.get_attribute('innerHTML'))
-            r = requests.post("https://console.kuabo.cn/Lottery/detail?id=%s"%id, cookies = requestCookies, verify=True)
+            r = requests.post(lotteryDetailsApi%id, cookies = requestCookies, verify=True)
             result_list = result_list + collect(r)
             i += 1
         page_num += 1

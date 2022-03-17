@@ -1,2 +1,2 @@
 cd $(dirname "$BASH_SOURCE")
-python3 fetch.py
+python3 fetchKuaboData.py
