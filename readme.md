@@ -2,7 +2,7 @@
 ---
 1. 需要Python3环境
 2. 需要本地安装Chrome浏览器
-3. 在命令行输入`pip3 install -r requirements.txt`以安装必要的第三方库
+3. 在命令行输入`pip3 install -r scripts/requirements.txt`以安装必要的第三方库
 4. 用Mac
 ## 脚本使用方法
 ---
