@@ -17,7 +17,6 @@ def login(rootUrl, loginURL, cookieFileName):
         driver.get(rootUrl)
         for c in cookie:
             driver.add_cookie(c)
-        driver.get(rootUrl)
     else:
         driver.get(loginURL)
         WebDriverWait(driver, 60).until(EC.url_to_be(rootUrl))

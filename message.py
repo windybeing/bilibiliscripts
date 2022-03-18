@@ -8,9 +8,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-biliCookieFileName = "cookies/bilibili.txt"
-biliRootUrl = "https://www.bilibili.com/"
-biliLoginUrl = "https://passport.bilibili.com/login"
+cookieFileName = "cookies/bilibili.txt"
+rootUrl = "https://www.bilibili.com/"
+loginUrl = "https://passport.bilibili.com/login"
+msgUrl = "https://message.bilibili.com/#/reply"
 
 receiverFileName = "私信名单.txt"
 contentFileName = "私信内容.txt"
@@ -50,7 +51,6 @@ class Message:
     def send(self):
         response = requests.post('https://api.vc.bilibili.com/web_im/v1/web_im/send_msg', 
                                 headers=self.headers, data=self.data)
-        print(response.url)
 
 def getReceiverList():
     res = []
@@ -66,9 +66,21 @@ def getContent():
     res = res.replace('\n', '\\n')
     return res
 
+def loginBilibili():
+    while True:
+        try:
+            login(rootUrl, loginUrl, cookieFileName)
+            driver.get(msgUrl)
+            if not driver.current_url == msgUrl:
+                os.remove(cookieFileName)
+                raise LoginException
+            break
+        except LoginException:
+            print("Cookie失效，需要重新登录一下")
+
 if __name__=="__main__":
     try: 
-        login(biliRootUrl, biliLoginUrl, biliCookieFileName)
+        loginBilibili()
         cookieDict = CookieDict(driver)
         devId = getDevId()
         ts = getTS()
@@ -79,7 +91,7 @@ if __name__=="__main__":
             message = Message(cookieDict, receiver, content, devId, ts)
             message.send()
 
-    except Exception as e:
-        print("恭喜发现未知BUG，请联系皮皮！！")
+    # except Exception as e:
+    #     print("恭喜发现未知BUG，请联系皮皮！！")
     finally:
         driver.quit()
