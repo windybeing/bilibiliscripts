@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchWindowException, TimeoutException
 from selenium.webdriver.common.by import By
-from driver import driver
+from driver import *
 
 # 自动读取中奖页面的数量，默认每个页面20条可点开的记录
 max_page_num = 3
@@ -26,8 +26,7 @@ requestCookies = dict()
 
 os.environ['WDM_LOG_LEVEL'] = '0'
 
-class LoginException(Exception):
-    pass
+
 
 def login():
     if os.path.exists(cookieFileName):

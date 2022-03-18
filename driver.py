@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver = webdriver.Chrome(service=Service(ChromeDriverManager(cache_valid_range=99999).install()))
 
 def login(rootUrl, loginURL, cookieFileName):
     if os.path.exists(cookieFileName):
@@ -25,3 +25,32 @@ def login(rootUrl, loginURL, cookieFileName):
         cookie = driver.get_cookies()
         with open(cookieFileName, "w") as file:
             file.write(json.dumps(cookie))
+
+class LoginException(Exception):
+    pass
+class DictNotFoundException(Exception):
+    pass
+
+class CookieDict:
+    def __init__(self, driver):
+        self.cookieDict = dict()
+        self.cookieString = ""
+        cookies = driver.get_cookies()
+        for row in cookies:
+            name = row['name']
+            value = row['value']
+            self.cookieDict[name] = value
+            self.cookieString += (name + "=" + value + "; ")
+        self.cookieString = self.cookieString[0:-2]
+
+    def get(self, key):
+        value = self.cookieDict.get(key)
+        if value is None:
+            raise DictNotFoundException
+        return value
+
+    def asDict(self):
+        return self.cookieDict
+
+    def asString(self):
+        return self.cookieString
