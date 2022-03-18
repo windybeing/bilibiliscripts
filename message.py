@@ -91,7 +91,7 @@ if __name__=="__main__":
             message = Message(cookieDict, receiver, content, devId, ts)
             message.send()
 
-    # except Exception as e:
-    #     print("恭喜发现未知BUG，请联系皮皮！！")
+    except Exception as e:
+        print("恭喜发现未知BUG，请联系皮皮！！")
     finally:
         driver.quit()
