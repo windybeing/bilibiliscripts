@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager(cache_valid_range=99999).install()))
 # driver = []
-def login(rootUrl, loginURL, cookieFileName):
+def login(rootUrl, loginUrl, cookieFileName):
     if os.path.exists(cookieFileName):
         cookie = None
         with open(cookieFileName, "r") as file:
@@ -18,7 +18,7 @@ def login(rootUrl, loginURL, cookieFileName):
         for c in cookie:
             driver.add_cookie(c)
     else:
-        driver.get(loginURL)
+        driver.get(loginUrl)
         WebDriverWait(driver, 60).until(EC.url_to_be(rootUrl))
 
         cookie = driver.get_cookies()

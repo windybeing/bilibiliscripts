@@ -24,37 +24,16 @@ loginUrl = "https://www.kuabo.cn/qq/login"
 consoleUrl = "https://console.kuabo.cn/"
 lotteryUrl = "https://console.kuabo.cn/lottery"
 lotteryDetailsApi = "https://console.kuabo.cn/Lottery/detail?id=%s"
-requestCookies = dict()
 
 receiverFileName = "跨播私信名单.txt"
 
 os.environ['WDM_LOG_LEVEL'] = '0'
-
-def login():
-    if os.path.exists(cookieFileName):
-        cookie = None
-        with open(cookieFileName, "r") as file:
-            string = file.read()
-            cookie = json.loads(string)
-        driver.get(rootUrl)
-        for c in cookie:
-            driver.add_cookie(c)
-    else:
-        driver.get(loginUrl)
-        WebDriverWait(driver, 60).until(EC.url_to_be(consoleUrl))
-
-        cookie = driver.get_cookies()
-        with open(cookieFileName, "w") as file:
-            file.write(json.dumps(cookie))
 
 def lottery():
     driver.get(lotteryUrl)
     if not driver.current_url == lotteryUrl:
         os.remove(cookieFileName)
         raise LoginException
-    cookies = driver.get_cookies()
-    for row in cookies:
-        requestCookies[row['name']]=row['value']
 
 def get_data_id(text):
     i = text.index('data-id="')
@@ -75,7 +54,7 @@ def fetch():
     resultList = []
     i = 0
     page_num = 0
-    cookie = driver.get_cookies()
+    cookieDict = CookieDict(driver)
     
     while True:
         # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(3))
@@ -87,7 +66,7 @@ def fetch():
         for row in rows:
             linkTd = row.find_elements(by=By.TAG_NAME, value='td')[1]
             id = get_data_id(linkTd.get_attribute('innerHTML'))
-            r = requests.post(lotteryDetailsApi%id, cookies = requestCookies, verify=True)
+            r = requests.post(lotteryDetailsApi%id, cookies = cookieDict.asDict(), verify=True)
             resultList = resultList + collect(r)
             i += 1
         page_num += 1
@@ -106,7 +85,7 @@ def fetch():
 def process():
     while True:
         try:
-            login()
+            login(rootUrl, loginUrl, cookieFileName)
             lottery()
             break
         except LoginException:
