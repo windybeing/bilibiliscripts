@@ -49,7 +49,7 @@ class Message:
         }
     
     def send(self):
-        response = requests.post('https://api.vc.bilibili.com/web_im/v1/web_im/send_msg', 
+        requests.post('https://api.vc.bilibili.com/web_im/v1/web_im/send_msg', 
                                 headers=self.headers, data=self.data)
 
 def getReceiverList():
