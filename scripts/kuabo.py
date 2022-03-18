@@ -3,6 +3,7 @@
 import os
 import json
 import requests
+import re
 from datetime import datetime
 from time import sleep
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,7 +13,7 @@ from selenium.webdriver.common.by import By
 from driver import *
 
 # 自动读取中奖页面的数量，默认每个页面20条可点开的记录
-max_page_num = 3
+max_page_num = 2
 # 被过滤掉的免费礼物
 filterSet = {"么么哒", "学喵叫x3", "给你一拳！", "上船30元代金券"}
 
@@ -24,6 +25,8 @@ consoleUrl = "https://console.kuabo.cn/"
 lotteryUrl = "https://console.kuabo.cn/lottery"
 lotteryDetailsApi = "https://console.kuabo.cn/Lottery/detail?id=%s"
 requestCookies = dict()
+
+receiverFileName = "跨播私信名单.txt"
 
 os.environ['WDM_LOG_LEVEL'] = '0'
 
@@ -97,6 +100,7 @@ def fetch():
         driver.execute_script("arguments[0].click();", next_button)
 
         sleep(1)
+    driver.minimize_window()
     return resultList
 
 def process():
@@ -108,16 +112,6 @@ def process():
         except LoginException:
             print("Cookie失效，需要重新登录一下")
     return fetch()
-
-def filter_result(inputList):
-    resultList = []
-    for string in inputList:
-        terms = string.split(" ")
-        item = terms[4]
-        if item in filterSet:
-            continue
-        resultList.append(string)
-    return resultList
 
 def remove_redundant_result(inputList):
     resultList = []
@@ -133,6 +127,53 @@ def remove_redundant_result(inputList):
     resultList.reverse()
     return resultList    
 
+def filter_result(inputList):
+    print("\033[1;32m<<<<<<<<<<< 请输入统计起始时间（格式类似[2022/2/28 22:59:53]，推荐复制上次获奖记录的最新日期） >>>>>>>>>>>\033[0m")
+    text = input()
+    if text == '':
+        text = '[2022/2/28 22:59:53]'
+    minDate = datetime.strptime(text, '[%Y/%m/%d %H:%M:%S]')
+
+    resultList = []
+    for string in inputList:
+        terms = string.split(" ")
+        dateStr = terms[0] + " " + terms[1]
+        date = datetime.strptime(dateStr, '[%Y/%m/%d %H:%M:%S]')
+        if date <= minDate:
+            break
+
+        item = terms[4]
+        if item in filterSet:
+            continue
+        resultList.append(string)
+    return resultList
+
+def dump(inputList):
+    with open(resultFileName, "w") as file:
+        file.write('\n'.join(map(str, inputList)))
+
+    id2Rewards = {}
+
+    for string in inputList:
+        terms = string.split(" ")
+        nameId = terms[2]
+        matches = re.findall("\(\d+\)", nameId)
+        id = matches[-1][1:-1]
+        
+        rewards = id2Rewards.get(id)
+        if rewards is None:
+            rewards = [terms[4]]
+            id2Rewards[id] = rewards
+        else:
+            rewards.append(terms[4])
+
+    with open(receiverFileName, "w") as file:
+        for id in id2Rewards.keys():
+            rewards = id2Rewards[id]
+            content = id + " " + ','.join(map(str, rewards)) + '\n'
+            file.write(content)
+    
+
 if __name__=="__main__":
     print("\n  Time is money, my friend.")
     print("  I sincerely hope that this script can save your time.")
@@ -140,20 +181,17 @@ if __name__=="__main__":
     print("=======================================================")
     try: 
         resultList = process()
-        # resultList = []
-        # with open("输入.txt", "r") as file:
-        #     for line in file:
-        #         resultList.append(line)
         resultList = remove_redundant_result(resultList)
         resultList = filter_result(resultList)
-        res_str = '\n'.join(map(str, resultList))
-        with open(resultFileName, "w") as file:
-            file.write(res_str)
+        dump(resultList)
     except NoSuchWindowException:
         print("脚本运行时，自动打开的浏览器被你手动关闭了！不要这么做哦！")
     except TimeoutException:
         print("长时间未操作，所以这个脚本自己关闭了（")
-    # except Exception as e:
-    #     print("恭喜发现未知BUG，请联系皮皮！！")
-    # finally:
-    #     driver.quit()
+    except ValueError:
+        print("输入的时间格式不正确！")
+    except Exception as e:
+        print("恭喜发现未知BUG，请联系皮皮！！")
+    finally:
+        driver.quit()
+        print("脚本执行完毕")

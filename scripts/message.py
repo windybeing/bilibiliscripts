@@ -63,9 +63,9 @@ def getContent():
     res = ""
     with open(contentFileName, "r") as file:
         res = file.read()
-    print("\033[1;31m<<<<<<<<<<< 准备发送的内容如下 >>>>>>>>>>>\033[0m")
+    print("\033[1;32m<<<<<<<<<<< 准备发送的内容如下 >>>>>>>>>>>\033[0m")
     print(res)
-    print("\033[1;31m<<<<<<<<<<< 输入yes确认发送 >>>>>>>>>>>\033[0m")
+    print("\033[1;32m<<<<<<<<<<< 输入yes确认发送 >>>>>>>>>>>\033[0m")
     text = input()
     if text != "yes":
         raise CancelException
@@ -108,4 +108,4 @@ if __name__=="__main__":
         print("恭喜发现未知BUG，请联系皮皮！！")
     finally:
         driver.quit()
-        print("群发结束")
+        print("脚本执行完毕")
