@@ -1,5 +1,23 @@
-1. Python3 and pip3 are required
+## 运行环境
+---
+1. 需要Python3环境
+2. 需要本地安装Chrome浏览器
+3. 在命令行输入`pip3 install -r requirements.txt`以安装必要的第三方库
+4. 用Mac
+## 脚本使用方法
+---
+双击对应的.command即可
 
-2. Chrome browser should be installed
+## 脚本功能
+---
+### 收集跨播获奖记录（kuabo）
 
-3. Type `pip3 install -r requirements.txt` in the root directory of this project
+该脚本会将跨播最近60场轮盘抽奖的结果导入`获奖记录.txt`。
+
+该脚本同时会过滤掉线上免费礼物："么么哒", "学喵叫x3", "给你一拳！"。
+针对"上船30元代金券"，由于并非所有中奖者都会上船，所以这里也先过滤掉了。
+
+### 哔哩哔哩消息群发（message）
+
+该脚本会将`私信内容.txt`中的内容群发给`私信名单.txt`中的用户。
+具体地，`私信名单.txt`每行的第一列数字，对应一位用户的uuid。

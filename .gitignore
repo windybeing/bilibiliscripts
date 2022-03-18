@@ -1,5 +1,4 @@
 .DS_store
-cookie.txt
-biliCookie.txt
-输出.txt
+cookies
+获奖记录.txt
 __pycache__

@@ -13,10 +13,10 @@ from driver import *
 # 自动读取中奖页面的数量，默认每个页面20条可点开的记录
 max_page_num = 3
 # 被过滤掉的免费礼物
-filterSet = {"么么哒", "学喵叫x3", "给你一拳！"}
+filterSet = {"么么哒", "学喵叫x3", "给你一拳！", "上船30元代金券"}
 
-cookieFileName = "cookie.txt"
-resultFileName = "输出.txt"
+cookieFileName = "./cookies/kuabo.txt"
+resultFileName = "获奖记录.txt"
 rootUrl = "https://www.kuabo.cn"
 loginUrl = "https://www.kuabo.cn/qq/login"
 consoleUrl = "https://console.kuabo.cn/"
@@ -25,7 +25,6 @@ lotteryDetailsApi = "https://console.kuabo.cn/Lottery/detail?id=%s"
 requestCookies = dict()
 
 os.environ['WDM_LOG_LEVEL'] = '0'
-
 
 
 def login():
