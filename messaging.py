@@ -12,6 +12,9 @@ biliCookieFileName = "biliCookie.txt"
 biliRootUrl = "https://www.bilibili.com/"
 biliLoginUrl = "https://passport.bilibili.com/login"
 
+receiverFileName = "私信名单.txt"
+contentFileName = "私信内容.txt"
+
 def getDevId():
     pattern = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
     devId = ""
@@ -22,14 +25,12 @@ def getDevId():
                 randomInt = 3 & randomInt | 8
             c = '{:x}'.format(randomInt).upper()
         devId += c
-    print(devId)
     return devId
 
 def getTS():
     dt = datetime.now()
     ts = datetime.timestamp(dt)
     ts = int(ts)
-    print(ts)
     return ts
 
 class Message:
@@ -49,6 +50,21 @@ class Message:
     def send(self):
         response = requests.post('https://api.vc.bilibili.com/web_im/v1/web_im/send_msg', 
                                 headers=self.headers, data=self.data)
+        print(response.url)
+
+def getReceiverList():
+    res = []
+    with open(receiverFileName, "r") as file:
+        for line in file:
+            res.append(line.split()[0])
+    return res
+        
+def getContent():
+    res = ""
+    with open(contentFileName, "r") as file:
+        res = file.read()
+    res = res.replace('\n', '\\n')
+    return res
 
 if __name__=="__main__":
     try: 
@@ -56,10 +72,14 @@ if __name__=="__main__":
         cookieDict = CookieDict(driver)
         devId = getDevId()
         ts = getTS()
-        message = Message(cookieDict, '12076317', '可以了', devId, ts)
-        message.send()
-        # WebDriverWait(driver, 600).until(EC.number_of_windows_to_be(3))
-    # except Exception as e:
-    #     print("恭喜发现未知BUG，请联系皮皮！！")
+        content = getContent()
+        receiverList = getReceiverList()
+
+        for receiver in receiverList:
+            message = Message(cookieDict, receiver, content, devId, ts)
+            message.send()
+
+    except Exception as e:
+        print("恭喜发现未知BUG，请联系皮皮！！")
     finally:
         driver.quit()
