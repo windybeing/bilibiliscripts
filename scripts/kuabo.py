@@ -3,6 +3,7 @@
 import os
 import json
 import requests
+from datetime import datetime
 from time import sleep
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -25,7 +26,6 @@ lotteryDetailsApi = "https://console.kuabo.cn/Lottery/detail?id=%s"
 requestCookies = dict()
 
 os.environ['WDM_LOG_LEVEL'] = '0'
-
 
 def login():
     if os.path.exists(cookieFileName):
@@ -68,8 +68,8 @@ def collect(content):
     res = string.split('","')
     return res
 
-def fetch_one():
-    result_list = []
+def fetch():
+    resultList = []
     i = 0
     page_num = 0
     cookie = driver.get_cookies()
@@ -85,7 +85,7 @@ def fetch_one():
             linkTd = row.find_elements(by=By.TAG_NAME, value='td')[1]
             id = get_data_id(linkTd.get_attribute('innerHTML'))
             r = requests.post(lotteryDetailsApi%id, cookies = requestCookies, verify=True)
-            result_list = result_list + collect(r)
+            resultList = resultList + collect(r)
             i += 1
         page_num += 1
         if page_num >= max_page_num:
@@ -97,7 +97,7 @@ def fetch_one():
         driver.execute_script("arguments[0].click();", next_button)
 
         sleep(1)
-    return result_list
+    return resultList
 
 def process():
     while True:
@@ -107,17 +107,31 @@ def process():
             break
         except LoginException:
             print("Cookie失效，需要重新登录一下")
-    return fetch_one()
+    return fetch()
 
-def filter_result(inputt_list):
-    result_list = []
-    for string in inputt_list:
+def filter_result(inputList):
+    resultList = []
+    for string in inputList:
         terms = string.split(" ")
         item = terms[4]
         if item in filterSet:
             continue
-        result_list.append(string)
-    return result_list
+        resultList.append(string)
+    return resultList
+
+def remove_redundant_result(inputList):
+    resultList = []
+    inputList.reverse()
+    maxDate = datetime.min
+    for string in inputList:
+        terms = string.split(" ")
+        dateStr = terms[0] + " " + terms[1]
+        date = datetime.strptime(dateStr, '[%Y/%m/%d %H:%M:%S]')
+        if date >= maxDate:
+            maxDate = date
+            resultList.append(string)
+    resultList.reverse()
+    return resultList    
 
 if __name__=="__main__":
     print("\n  Time is money, my friend.")
@@ -125,16 +139,21 @@ if __name__=="__main__":
     print("                                             ------皮皮")
     print("=======================================================")
     try: 
-        result_list = process()
-        result_list = filter_result(result_list)
-        res_str = '\n'.join(map(str, result_list))
+        resultList = process()
+        # resultList = []
+        # with open("输入.txt", "r") as file:
+        #     for line in file:
+        #         resultList.append(line)
+        resultList = remove_redundant_result(resultList)
+        resultList = filter_result(resultList)
+        res_str = '\n'.join(map(str, resultList))
         with open(resultFileName, "w") as file:
             file.write(res_str)
     except NoSuchWindowException:
         print("脚本运行时，自动打开的浏览器被你手动关闭了！不要这么做哦！")
     except TimeoutException:
         print("长时间未操作，所以这个脚本自己关闭了（")
-    except Exception as e:
-        print("恭喜发现未知BUG，请联系皮皮！！")
-    finally:
-        driver.quit()
+    # except Exception as e:
+    #     print("恭喜发现未知BUG，请联系皮皮！！")
+    # finally:
+    #     driver.quit()

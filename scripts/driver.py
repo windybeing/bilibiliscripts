@@ -7,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager(cache_valid_range=99999).install()))
-
+# driver = []
 def login(rootUrl, loginURL, cookieFileName):
     if os.path.exists(cookieFileName):
         cookie = None
