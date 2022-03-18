@@ -4,9 +4,7 @@ import requests
 import random
 from datetime import datetime
 from driver import *
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchWindowException, TimeoutException
 
 cookieFileName = "cookies/bilibili.txt"
 rootUrl = "https://www.bilibili.com/"
@@ -90,7 +88,10 @@ if __name__=="__main__":
         for receiver in receiverList:
             message = Message(cookieDict, receiver, content, devId, ts)
             message.send()
-
+    except NoSuchWindowException:
+        print("脚本运行时，自动打开的浏览器被你手动关闭了！不要这么做哦！")
+    except TimeoutException:
+        print("长时间未操作，所以这个脚本自己关闭了（")
     except Exception as e:
         print("恭喜发现未知BUG，请联系皮皮！！")
     finally:
