@@ -14,6 +14,8 @@ msgUrl = "https://message.bilibili.com/#/reply"
 receiverFileName = "私信名单.txt"
 contentFileName = "私信内容.txt"
 
+os.environ['WDM_LOG_LEVEL'] = '0'
+
 def getDevId():
     pattern = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
     devId = ""
@@ -61,6 +63,13 @@ def getContent():
     res = ""
     with open(contentFileName, "r") as file:
         res = file.read()
+    print("\033[1;31m<<<<<<<<<<< 准备发送的内容如下 >>>>>>>>>>>\033[0m")
+    print(res)
+    print("\033[1;31m<<<<<<<<<<< 输入yes确认发送 >>>>>>>>>>>\033[0m")
+    text = input()
+    if text != "yes":
+        raise CancelException
+    print("开始群发")
     res = res.replace('\n', '\\n')
     return res
 
@@ -75,6 +84,7 @@ def loginBilibili():
             break
         except LoginException:
             print("Cookie失效，需要重新登录一下")
+    driver.minimize_window()
 
 if __name__=="__main__":
     try: 
@@ -92,7 +102,10 @@ if __name__=="__main__":
         print("脚本运行时，自动打开的浏览器被你手动关闭了！不要这么做哦！")
     except TimeoutException:
         print("长时间未操作，所以这个脚本自己关闭了（")
+    except CancelException:
+        print("主动取消群发")
     except Exception as e:
         print("恭喜发现未知BUG，请联系皮皮！！")
     finally:
         driver.quit()
+        print("群发结束")

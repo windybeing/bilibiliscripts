@@ -1,2 +1,2 @@
 cd $(dirname "$BASH_SOURCE")
-python3 kuabo.py
+python3 scripts/kuabo.py

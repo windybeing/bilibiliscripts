@@ -29,6 +29,8 @@ class LoginException(Exception):
     pass
 class DictNotFoundException(Exception):
     pass
+class CancelException(Exception):
+    pass
 
 class CookieDict:
     def __init__(self, driver):
