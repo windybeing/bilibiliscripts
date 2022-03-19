@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchWindowException, TimeoutException
 cookieFileName = "cookies/bilibili.txt"
 rootUrl = "https://www.bilibili.com/"
 loginUrl = "https://passport.bilibili.com/login"
-msgUrl = "https://message.bilibili.com/#/reply"
+msgUrl = "https://message.bilibili.com/#/whisper"
 
 receiverFileName = "私信名单.txt"
 contentFileName = "私信内容.txt"
@@ -57,13 +57,14 @@ def getReceiverList():
     with open(receiverFileName, "r") as file:
         for line in file:
             res.append(line.split()[0])
+    print("\033[1;32m<<<<<<<<<<< 总计发送给%d名用户 >>>>>>>>>>>\033[0m"%len(res))
     return res
         
 def getContent():
     res = ""
     with open(contentFileName, "r") as file:
         res = file.read()
-    print("\033[1;32m<<<<<<<<<<< 准备发送的内容如下 >>>>>>>>>>>\033[0m")
+    print("\033[1;32m<<<<<<<<<<< 准备发送的私信内容如下 >>>>>>>>>>>\033[0m")
     print(res)
     print("\033[1;32m<<<<<<<<<<< 输入yes确认发送 >>>>>>>>>>>\033[0m")
     text = input()
@@ -92,8 +93,8 @@ if __name__=="__main__":
         cookieDict = CookieDict(driver)
         devId = getDevId()
         ts = getTS()
-        content = getContent()
         receiverList = getReceiverList()
+        content = getContent()
 
         for receiver in receiverList:
             message = Message(cookieDict, receiver, content, devId, ts)

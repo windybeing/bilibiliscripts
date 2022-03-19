@@ -154,10 +154,9 @@ def dump(inputList):
     
 
 if __name__=="__main__":
-    print("\n  Time is money, my friend.")
-    print("  I sincerely hope that this script can save your time.")
-    print("                                             ------皮皮")
-    print("=======================================================")
+    # Time is money, my friend.
+    # I sincerely hope that this script can save your time.
+    #                                             ------皮皮
     try: 
         resultList = process()
         resultList = remove_redundant_result(resultList)
