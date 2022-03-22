@@ -1,5 +1,6 @@
 #-*- coding: utf-8
 #!python3
+import sys
 import requests
 import random
 from datetime import datetime
@@ -9,14 +10,15 @@ from selenium.common.exceptions import NoSuchWindowException, TimeoutException
 cookieFileName = "cookies/bilibili.txt"
 rootUrl = "https://www.bilibili.com/"
 loginUrl = "https://passport.bilibili.com/login"
-msgUrl = "https://message.bilibili.com/#/whisper"
+msgUrl = "https://message.bilibili.com/#/reply"
 
 receiverFileName = "私信名单.txt"
 contentFileName = "私信内容.txt"
+sailorsFileName = "舰长名单.txt"
 
 os.environ['WDM_LOG_LEVEL'] = '0'
 
-def getDevId():
+def get_dev_id():
     pattern = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
     devId = ""
     for c in pattern:
@@ -28,7 +30,7 @@ def getDevId():
         devId += c
     return devId
 
-def getTS():
+def get_ts():
     dt = datetime.now()
     ts = datetime.timestamp(dt)
     ts = int(ts)
@@ -52,7 +54,27 @@ class Message:
         requests.post('https://api.vc.bilibili.com/web_im/v1/web_im/send_msg', 
                                 headers=self.headers, data=self.data)
 
-def getReceiverList():
+def get_all_sailors(cookieDict):
+    res = []
+    myHeaders = { 'cookie': cookieDict.asString() }
+    i = 1
+    totalPages = 1
+    while True:
+        if i > totalPages:
+            break
+        myData = { 'page': i }        
+        reply = requests.get('https://api.live.bilibili.com/xlive/web-ucenter/user/sailors',
+                                headers=myHeaders, data=myData)
+        pageJson = json.loads(reply.text)
+        replyData = pageJson['data']
+        totalPages = replyData['pageInfo']['totalPages']
+        res += replyData['list']
+        i += 1
+
+    with open(sailorsFileName, "w") as file:
+        file.write('\n'.join(map(str, res)))
+
+def get_receiver_list():
     res = []
     with open(receiverFileName, "r") as file:
         for line in file:
@@ -60,7 +82,7 @@ def getReceiverList():
     print("\033[1;32m<<<<<<<<<<< 总计发送给%d名用户 >>>>>>>>>>>\033[0m"%len(res))
     return res
         
-def getContent():
+def get_content():
     res = ""
     with open(contentFileName, "r") as file:
         res = file.read()
@@ -88,17 +110,25 @@ def loginBilibili():
     driver.minimize_window()
 
 if __name__=="__main__":
+    func = 'message'
+    if len(sys.argv) == 2:
+        func = sys.argv[1]
     try: 
         loginBilibili()
         cookieDict = CookieDict(driver)
-        devId = getDevId()
-        ts = getTS()
-        receiverList = getReceiverList()
-        content = getContent()
+        if func == 'message':
+            devId = get_dev_id()
+            ts = get_ts()
+            receiverList = get_receiver_list()
+            content = get_content()
 
-        for receiver in receiverList:
-            message = Message(cookieDict, receiver, content, devId, ts)
-            message.send()
+            for receiver in receiverList:
+                message = Message(cookieDict, receiver, content, devId, ts)
+                message.send()
+        elif func == 'sailors':
+            res = get_all_sailors(cookieDict)
+        else:
+            print('未指定具体功能')
     except NoSuchWindowException:
         print("脚本运行时，自动打开的浏览器被你手动关闭了！不要这么做哦！")
     except TimeoutException:

@@ -1,2 +1,2 @@
 cd $(dirname "$BASH_SOURCE")
-python3 ../scripts/message.py
+python3 ../scripts/message.py message
